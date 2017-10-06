@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="enum_class.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="force_mover.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="functional.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="redis_resp_reader.cpp">
+      <Filter>redis</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="core">
+      <UniqueIdentifier>{e6b03054-4eb4-4c11-9069-a2d093f30a6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="redis">
+      <UniqueIdentifier>{5fd4752f-823f-48c3-b922-6a508ac263c0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
