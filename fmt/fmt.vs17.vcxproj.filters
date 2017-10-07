@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="LICENSE.rst" />
+    <None Include="README.rst" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="fmt\container.h" />
+    <ClInclude Include="fmt\format.h" />
+    <ClInclude Include="fmt\ostream.h" />
+    <ClInclude Include="fmt\posix.h" />
+    <ClInclude Include="fmt\printf.h" />
+    <ClInclude Include="fmt\string.h" />
+    <ClInclude Include="fmt\time.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="fmt\format.cc" />
+    <ClCompile Include="fmt\ostream.cc" />
+    <ClCompile Include="fmt\posix.cc" />
+    <ClCompile Include="fmt\printf.cc" />
+  </ItemGroup>
+</Project>

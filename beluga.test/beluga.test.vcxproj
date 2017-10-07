@@ -62,6 +62,9 @@
     <ProjectReference Include="..\beluga\beluga.vs17.vcxproj">
       <Project>{5e2d9547-3005-4d74-811b-9feaaa4ea204}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\fmt\fmt.vs17.vcxproj">
+      <Project>{67ccbec8-5f29-4134-8038-534ae949ad38}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
