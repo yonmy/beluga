@@ -34,6 +34,9 @@
     <ClInclude Include="redis\resp_reader.h">
       <Filter>redis</Filter>
     </ClInclude>
+    <ClInclude Include="redis\resp_builder.h">
+      <Filter>redis</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
