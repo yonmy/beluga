@@ -152,6 +152,7 @@
     <ClInclude Include="core\force_mover.h" />
     <ClInclude Include="core\functional.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="redis\rcommand.h" />
     <ClInclude Include="redis\resp.h" />
     <ClInclude Include="redis\resp_builder.h" />
     <ClInclude Include="redis\resp_reader.h" />

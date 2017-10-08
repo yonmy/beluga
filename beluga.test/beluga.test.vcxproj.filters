@@ -17,6 +17,9 @@
     <ClCompile Include="redis_resp_builder.cpp">
       <Filter>redis</Filter>
     </ClCompile>
+    <ClCompile Include="redis_rcommand.cpp">
+      <Filter>redis</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
