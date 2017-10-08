@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "boost/lexical_cast.hpp"
 #include "boost/optional.hpp"
 #include "boost/variant.hpp"
 
@@ -13,13 +14,15 @@ namespace redis
 class Resp
 {
 public:
-	Resp() = default;
+	using TValue = boost::variant<
+		boost::optional<std::string>	// bulk/simple string
+		, __int64						// integer
+		, std::vector<Resp>				// array
+		, std::string					// error string
+	>;
 
-	template<class T>
-	Resp(const T& value)
-		: _value(value)
-	{
-	}
+public:
+	Resp() = default;
 
 	Resp(const Resp& rhs)
 		: _value(rhs._value)
@@ -28,6 +31,12 @@ public:
 
 	Resp(Resp&& rhs)
 		: _value(std::move(rhs._value))
+	{
+	}
+
+	template<class T>
+	Resp(const T& value)
+		: _value(value)
 	{
 	}
 
@@ -43,36 +52,45 @@ public:
 		return *this;
 	}
 
+	template<class T>
+	Resp& operator=(const T& value)
+	{
+		_value = value;
+		return *this;
+	}
+
+	template<class T>
+	Resp& operator=(Resp&& value)
+	{
+		_value = std::move(value);
+		return *this;
+	}
+
 	void clear()
 	{
-		_value = boost::optional<std::string>();
+		_value = decltype(_value)();
 	}
 
 	void swap(Resp& rhs)
 	{
-		_value.swap(rhs._value);
+		swap(rhs._value);
 	}
 
-	template<class T>
-	T* get()
+	void swap(TValue& rhs)
 	{
-		return boost::get<T>(&_value);
-	}
-
-	template<class T>
-	const T* get() const
-	{
-		return boost::get<T>(&_value);
+		_value.swap(rhs);
 	}
 
 private:
-	boost::variant<
-		boost::optional<std::string>
-		, __int64
-		, std::string
-		, std::vector<Resp>
-	> _value;
+	template<class T> friend const typename T* get(const Resp&);
+	TValue _value;
 };
+
+template<class T>
+const typename T* get(const Resp& resp)
+{
+	return boost::get<T>(&resp._value);
+}
 
 }
 }

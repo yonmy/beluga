@@ -60,7 +60,7 @@ private:
 
 RespReader::RespReader(RespReader&& rhs)
 	: _state(std::move(rhs._state))
-	, _resp(std::move(rhs._resp))
+	, _value(std::move(rhs._value))
 	, _reader(std::move(rhs._reader))
 {
 }
@@ -68,7 +68,7 @@ RespReader::RespReader(RespReader&& rhs)
 RespReader& RespReader::operator=(RespReader&& rhs)
 {
 	_state = std::move(rhs._state);
-	_resp = std::move(rhs._resp);
+	_value = std::move(rhs._value);
 	_reader = std::move(rhs._reader);
 	return (*this);
 }
@@ -76,7 +76,7 @@ RespReader& RespReader::operator=(RespReader&& rhs)
 void RespReader::clear()
 {
 	_state = State::Partial;
-	_resp.clear();
+	_value = decltype(_value)();
 	_reader = nullptr;
 }
 
@@ -103,17 +103,17 @@ size_t RespReader::read(const char* buf, size_t size)
 			readsize += ret.first;
 			if (ret.second < 0)
 			{
-				_resp = boost::optional<std::string>();
+				_value = boost::optional<std::string>();
 				_state = State::Done;
 				return readsize;
 			}
 
 			std::string str;
 			str.reserve(static_cast<size_t>(ret.second));
-			_resp = boost::optional<std::string>(std::move(str));
+			_value = boost::optional<std::string>(std::move(str));
 			_reader = [this](const char* buf, size_t size)
 			{
-				return read_string(_resp.get<boost::optional<std::string>>()->get(),
+				return read_string(boost::get<boost::optional<std::string>>(_value).get(),
 					buf, size);
 			};
 		} break;
@@ -126,7 +126,7 @@ size_t RespReader::read(const char* buf, size_t size)
 			}
 
 			readsize += ret.first;
-			_resp = std::vector<Resp>();
+			_value = std::vector<Resp>();
 			if (ret.second <= 0)
 			{
 				_state = State::Done;
@@ -134,7 +134,7 @@ size_t RespReader::read(const char* buf, size_t size)
 			}
 
 			auto r = make_force_mover(RespArrayReader(
-				*_resp.get<std::vector<Resp>>(),
+				boost::get<std::vector<Resp>>(_value),
 				static_cast<size_t>(ret.second)));
 			_reader = [this, r](const char* buf, size_t size) mutable
 			{
@@ -152,19 +152,19 @@ size_t RespReader::read(const char* buf, size_t size)
 		} break;
 		case '+':
 		{
-			_resp = boost::optional<std::string>(std::string());
+			_value = boost::optional<std::string>(std::string());
 			_reader = [this](const char* buf, size_t size)
 			{
-				return read_string(_resp.get<boost::optional<std::string>>()->get(),
+				return read_string(boost::get<boost::optional<std::string>>(_value).get(),
 					buf, size);
 			};
 		} break;
 		case '-':
 		{
-			_resp = std::string();
+			_value = std::string();
 			_reader = [this](const char* buf, size_t size)
 			{
-				return read_string(*_resp.get<std::string>(), buf, size);
+				return read_string(boost::get<std::string>(_value), buf, size);
 			};
 		} break;
 		case ':':
@@ -176,7 +176,7 @@ size_t RespReader::read(const char* buf, size_t size)
 			}
 
 			readsize += ret.first;
-			_resp = ret.second;
+			_value = ret.second;
 			_state = State::Done; return readsize;
 		} break;
 		default:
@@ -233,7 +233,7 @@ bool RespReader::pop_on_done(Resp& out)
 {
 	if (is_done())
 	{
-		_resp.swap(out);
+		out.swap(_value);
 		clear();
 		return true;
 	}

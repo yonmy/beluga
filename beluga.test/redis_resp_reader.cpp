@@ -17,7 +17,7 @@ TEST(RespReader, Interger)
 	EXPECT_TRUE(reader.is_unfinished());
 	EXPECT_FALSE(reader.is_done());
 	EXPECT_FALSE(reader.is_error());
-	auto ret = resp.get<__int64>();
+	auto ret = redis::get<__int64>(resp);
 	EXPECT_NE(nullptr, ret);
 	EXPECT_EQ(0i64, *ret);
 }
@@ -26,7 +26,7 @@ TEST(RespReader, SimpleString)
 {
 	auto ResultTest = [](const redis::Resp& resp)
 	{
-		auto ret = resp.get<boost::optional<std::string>>();
+		auto ret = redis::get<boost::optional<std::string>>(resp);
 		EXPECT_NE(nullptr, ret);
 		EXPECT_TRUE(ret->is_initialized());
 		EXPECT_STREQ("simplestring", ret->get().c_str());
@@ -122,7 +122,7 @@ TEST(RespReader, BulkString)
 {
 	auto ResultTest = [](const redis::Resp& resp)
 	{
-		auto ret = resp.get<boost::optional<std::string>>();
+		auto ret = redis::get<boost::optional<std::string>>(resp);
 		EXPECT_NE(nullptr, ret);
 		EXPECT_TRUE(ret->is_initialized());
 		EXPECT_STREQ("bulkstring", ret->get().c_str());
@@ -249,7 +249,7 @@ TEST(RespReader, BulkString)
 		EXPECT_TRUE(reader.is_unfinished());
 		EXPECT_FALSE(reader.is_done());
 		EXPECT_FALSE(reader.is_error());
-		auto ret = resp.get<boost::optional<std::string>>();
+		auto ret = redis::get<boost::optional<std::string>>(resp);
 		EXPECT_NE(nullptr, ret);
 		EXPECT_FALSE(ret->is_initialized());
 	}
@@ -259,7 +259,7 @@ TEST(RespReader, ErrorString)
 {
 	auto ResultTest = [](const redis::Resp& resp)
 	{
-		auto ret = resp.get<std::string>();
+		auto ret = redis::get<std::string>(resp);
 		EXPECT_NE(nullptr, ret);
 		EXPECT_STREQ("errorstring", ret->c_str());
 	};
@@ -354,28 +354,28 @@ TEST(RespReader, Array)
 {
 	auto ResultTest = [](const redis::Resp& resp)
 	{
-		auto ret = resp.get<std::vector<redis::Resp>>();
+		auto ret = redis::get<std::vector<redis::Resp>>(resp);
 		EXPECT_NE(nullptr, ret);
 		EXPECT_EQ((size_t)4, ret->size());
-		auto ret0 = ret->at(0).get<__int64>();
+		auto ret0 = redis::get<__int64>(ret->at(0));
 		EXPECT_NE(nullptr, ret0);
 		EXPECT_TRUE(10i64 == *ret0);
-		auto ret1 = ret->at(1).get<boost::optional<std::string>>();
+		auto ret1 = redis::get<boost::optional<std::string>>(ret->at(1));
 		EXPECT_NE(nullptr, ret1);
 		EXPECT_TRUE(ret1->is_initialized());
 		EXPECT_STREQ("simplestring", ret1->get().c_str());
-		auto ret2 = ret->at(2).get<std::vector<redis::Resp>>();
+		auto ret2 = redis::get<std::vector<redis::Resp>>(ret->at(2));
 		EXPECT_NE(nullptr, ret2);
 		EXPECT_EQ((size_t)2, ret2->size());
-		auto ret2_0 = ret2->at(0).get<boost::optional<std::string>>();
+		auto ret2_0 = redis::get<boost::optional<std::string>>(ret2->at(0));
 		EXPECT_NE(nullptr, ret2_0);
 		EXPECT_TRUE(ret2_0->is_initialized());
 		EXPECT_STREQ("foo", ret2_0->get().c_str());
-		auto ret2_1 = ret2->at(1).get<boost::optional<std::string>>();
+		auto ret2_1 = redis::get<boost::optional<std::string>>(ret2->at(1));
 		EXPECT_NE(nullptr, ret2_1);
 		EXPECT_TRUE(ret2_1->is_initialized());
 		EXPECT_STREQ("bar", ret2_1->get().c_str());
-		auto ret3 = ret->at(3).get<boost::optional<std::string>>();
+		auto ret3 = redis::get<boost::optional<std::string>>(ret->at(3));
 		EXPECT_NE(nullptr, ret3);
 		EXPECT_TRUE(ret3->is_initialized());
 		EXPECT_STREQ("bulkstring", ret3->get().c_str());

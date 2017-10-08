@@ -41,7 +41,7 @@ private:
 
 private:
 	State _state = State::Partial;
-	Resp _resp;
+	Resp::TValue _value;
 	std::function<size_t(const char*, size_t)> _reader = nullptr;
 };
 
