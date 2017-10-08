@@ -20,6 +20,9 @@
     <ClCompile Include="redis_rcommand.cpp">
       <Filter>redis</Filter>
     </ClCompile>
+    <ClCompile Include="type_traits.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

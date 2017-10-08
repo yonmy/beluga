@@ -59,6 +59,7 @@
     <ClCompile Include="redis_rcommand.cpp" />
     <ClCompile Include="redis_resp_builder.cpp" />
     <ClCompile Include="redis_resp_reader.cpp" />
+    <ClCompile Include="type_traits.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\beluga\beluga.vs17.vcxproj">
