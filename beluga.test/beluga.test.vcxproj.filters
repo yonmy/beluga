@@ -23,6 +23,9 @@
     <ClCompile Include="type_traits.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="function_traits.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

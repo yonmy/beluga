@@ -50,6 +50,7 @@
     <ClCompile Include="enum_class.cpp" />
     <ClCompile Include="force_mover.cpp" />
     <ClCompile Include="functional.cpp" />
+    <ClCompile Include="function_traits.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
