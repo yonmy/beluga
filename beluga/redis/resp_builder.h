@@ -2,7 +2,7 @@
 
 #include <tuple>
 #include "boost/optional.hpp"
-#include "fmt/format.h"
+#include "beluga/core/format.h"
 
 namespace beluga
 {
@@ -14,13 +14,13 @@ class BulkStringBuilder
 public:
 	static std::string make(const std::string& param) noexcept
 	{
-		return fmt::format("${}\r\n{}\r\n", param.length(), param);
+		return FORMAT("${}\r\n{}\r\n", param.length(), param);
 	}
 
 	static std::string make(const char* param) noexcept
 	{
 		return (param ?
-			fmt::format("${}\r\n{}\r\n", ::strlen(param), param) :
+			FORMAT("${}\r\n{}\r\n", ::strlen(param), param) :
 			make(nullptr));
 	}
 
@@ -32,7 +32,7 @@ public:
 	template<class T>
 	static std::string make(const T& param) noexcept
 	{
-		return make(fmt::format("{}", param));
+		return make(FORMAT("{}", param));
 	}
 
 	template<class T>
@@ -57,7 +57,7 @@ public:
 
 	static std::string make(const Tuple& t) noexcept
 	{
-		return fmt::format("*{}\r\n{}", sizeof...(T),
+		return FORMAT("*{}\r\n{}", sizeof...(T),
 			make(t, std::integral_constant<size_t, 0>()));
 	}
 

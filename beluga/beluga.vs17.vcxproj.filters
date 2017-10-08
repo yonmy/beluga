@@ -40,6 +40,9 @@
     <ClInclude Include="redis\rcommand.h">
       <Filter>redis</Filter>
     </ClInclude>
+    <ClInclude Include="core\format.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

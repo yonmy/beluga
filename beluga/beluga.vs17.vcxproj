@@ -150,6 +150,7 @@
   <ItemGroup>
     <ClInclude Include="core\enum_class.h" />
     <ClInclude Include="core\force_mover.h" />
+    <ClInclude Include="core\format.h" />
     <ClInclude Include="core\functional.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="redis\rcommand.h" />
