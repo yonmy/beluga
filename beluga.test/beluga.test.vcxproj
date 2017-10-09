@@ -58,6 +58,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="redis_rcommand.cpp" />
+    <ClCompile Include="redis_resp.cpp" />
     <ClCompile Include="redis_resp_builder.cpp" />
     <ClCompile Include="redis_resp_reader.cpp" />
     <ClCompile Include="type_traits.cpp" />

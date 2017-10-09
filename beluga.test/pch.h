@@ -5,4 +5,6 @@
 
 #pragma once
 
+#include <list>
+#include <vector>
 #include "gtest/gtest.h"

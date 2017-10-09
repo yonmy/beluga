@@ -26,6 +26,9 @@
     <ClCompile Include="function_traits.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="redis_resp.cpp">
+      <Filter>redis</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
