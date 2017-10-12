@@ -1,16 +1,24 @@
 #include "pch.h"
 #include "beluga/redis/rcommand.h"
 
-using namespace beluga;
+using namespace beluga::redis;
+
+TEST(RedisRCmd, PING)
+{
+	EXPECT_EQ("*1\r\n$4\r\nPING\r\n",
+		RCmd<RCmdType::PING>::make().resp_str());
+	EXPECT_EQ("*2\r\n$4\r\nPING\r\n$4\r\ntest\r\n",
+		RCmd<RCmdType::PING>::make("test").resp_str());
+}
 
 TEST(RedisRCmd, GET)
 {
-	auto cmd = redis::RCmd<redis::RCmdType::GET>::make("test");
-	EXPECT_STREQ("*2\r\n$3\r\nGET\r\n$4\r\ntest\r\n", cmd.resp_str().c_str());
+	EXPECT_EQ("*2\r\n$3\r\nGET\r\n$4\r\ntest\r\n",
+		RCmd<RCmdType::GET>::make("test").resp_str());
 }
 
 TEST(RedisRCmd, SET)
 {
-	auto cmd = redis::RCmd<redis::RCmdType::SET>::make("test", 10);
-	EXPECT_STREQ("*3\r\n$3\r\nSET\r\n$4\r\ntest\r\n$2\r\n10\r\n", cmd.resp_str().c_str());
+	EXPECT_EQ("*3\r\n$3\r\nSET\r\n$4\r\ntest\r\n$2\r\n10\r\n",
+		RCmd<RCmdType::SET>::make("test", 10).resp_str());
 }
