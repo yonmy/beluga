@@ -155,10 +155,13 @@
     <ClInclude Include="core\function_traits.h" />
     <ClInclude Include="core\type_traits.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="redis\rclient_asio_async.h" />
     <ClInclude Include="redis\rcommand.h" />
     <ClInclude Include="redis\resp.h" />
     <ClInclude Include="redis\resp_builder.h" />
     <ClInclude Include="redis\resp_reader.h" />
+    <ClInclude Include="redis\rrequest.h" />
+    <ClInclude Include="redis\rrequest_impl.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>

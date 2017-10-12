@@ -49,6 +49,15 @@
     <ClInclude Include="core\function_traits.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="redis\rrequest.h">
+      <Filter>redis</Filter>
+    </ClInclude>
+    <ClInclude Include="redis\rrequest_impl.h">
+      <Filter>redis</Filter>
+    </ClInclude>
+    <ClInclude Include="redis\rclient_asio_async.h">
+      <Filter>redis</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
