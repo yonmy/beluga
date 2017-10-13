@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 					std::cout << ret << std::endl;
 				});
 				request.commit();
-				request.push(RCmd<RCmdType::SET>::make("a", 10), [](const std::string& ret)
+				request.push(RCmd<RCmdType::SET>::make("a", 10), [](bool ret)
 				{
 					std::cout << ret << std::endl;
 				});

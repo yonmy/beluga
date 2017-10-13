@@ -162,6 +162,7 @@
     <ClInclude Include="redis\resp_reader.h" />
     <ClInclude Include="redis\rrequest.h" />
     <ClInclude Include="redis\rrequest_impl.h" />
+    <ClInclude Include="redis\rresponse.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>

@@ -58,6 +58,9 @@
     <ClInclude Include="redis\rclient_asio_async.h">
       <Filter>redis</Filter>
     </ClInclude>
+    <ClInclude Include="redis\rresponse.h">
+      <Filter>redis</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
