@@ -108,13 +108,14 @@ size_t RespReader::read(const char* buf, size_t size)
 				return readsize;
 			}
 
+			const size_t len = static_cast<size_t>(ret.second);
 			std::string str;
-			str.reserve(static_cast<size_t>(ret.second));
+			str.reserve(len);
 			_value = boost::optional<std::string>(std::move(str));
-			_reader = [this](const char* buf, size_t size)
+			_reader = [this, len](const char* buf, size_t size)
 			{
-				return read_string(boost::get<boost::optional<std::string>>(_value).get(),
-					buf, size);
+				return read_bulkstring(boost::get<boost::optional<std::string>>(_value).get(),
+					len, buf, size);
 			};
 		} break;
 		case Resp::SYMBOL_ARRAY:
@@ -227,6 +228,31 @@ size_t RespReader::read_string(std::string& out, const char* buf, size_t size)
 		out.append(buf, len);
 	}
 	return (size);
+}
+
+size_t RespReader::read_bulkstring(std::string& out, size_t len, const char* buf, size_t size)
+{
+	const size_t needsize = len - out.length();
+	if (size < needsize)
+	{
+		out.append(buf, size);
+		return size;
+	}
+
+	out.append(buf, needsize);
+	if ((size - needsize) < 2)
+	{
+		return (needsize);
+	}
+
+	if ((buf[needsize] == '\r') && (buf[needsize+1] == '\n'))
+	{
+		_state = State::Done;
+		return (needsize + 2);
+	}
+
+	_state = State::Error;
+	return (needsize);
 }
 
 bool RespReader::pop_on_done(Resp& out)

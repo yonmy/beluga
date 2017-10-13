@@ -38,6 +38,7 @@ public:
 private:
 	static std::pair<size_t, __int64> read_integer(const char* buf, size_t size);
 	size_t read_string(std::string& out, const char* buf, size_t size);
+	size_t read_bulkstring(std::string& out, size_t len, const char* buf, size_t size);
 
 private:
 	State _state = State::Partial;

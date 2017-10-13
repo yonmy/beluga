@@ -120,17 +120,17 @@ TEST(RespReader, SimpleString)
 
 TEST(RespReader, BulkString)
 {
-	auto ResultTest = [](const redis::Resp& resp)
+	auto ResultTest = [](const char* str, const redis::Resp& resp)
 	{
 		auto ret = redis::get<boost::optional<std::string>>(resp);
 		EXPECT_NE(nullptr, ret);
 		EXPECT_TRUE(ret->is_initialized());
-		EXPECT_STREQ("bulkstring", ret->get().c_str());
+		EXPECT_STREQ(str, ret->get().c_str());
 	};
 
-	{
-		const std::string TESTCASE = "$10\r\nbulkstring\r\n";
+	const std::string TESTCASE = "$10\r\nbulkstring\r\n";
 
+	{
 		redis::RespReader reader;
 		redis::Resp resp;
 		EXPECT_EQ(TESTCASE.size(), reader.read(TESTCASE.c_str(), TESTCASE.size()));
@@ -141,22 +141,20 @@ TEST(RespReader, BulkString)
 		EXPECT_TRUE(reader.is_unfinished());
 		EXPECT_FALSE(reader.is_done());
 		EXPECT_FALSE(reader.is_error());
-		ResultTest(resp);
+		ResultTest("bulkstring", resp);
 	}
 
-	{// partial test 1
-		std::string TESTCASE1 = "$10\r\nbulk";
-		std::string TESTCASE2 = "string\r\n";
-
+	for (size_t i = 1; i < TESTCASE.size(); ++i)
+	{// partial test
 		redis::RespReader reader;
 		redis::Resp resp;
 
-		EXPECT_EQ(TESTCASE1.size(), reader.read(TESTCASE1.c_str(), TESTCASE1.size()));
+		size_t read = reader.read(TESTCASE.c_str(), i);
 		EXPECT_TRUE(reader.is_unfinished());
 		EXPECT_FALSE(reader.is_done());
 		EXPECT_FALSE(reader.is_error());
 		EXPECT_FALSE(reader.pop_on_done(resp));
-		EXPECT_EQ(TESTCASE2.size(), reader.read(TESTCASE2.c_str(), TESTCASE2.size()));
+		EXPECT_EQ(TESTCASE.size(), read + reader.read(TESTCASE.c_str() + read, TESTCASE.size() - read));
 		EXPECT_FALSE(reader.is_unfinished());
 		EXPECT_TRUE(reader.is_done());
 		EXPECT_FALSE(reader.is_error());
@@ -164,84 +162,15 @@ TEST(RespReader, BulkString)
 		EXPECT_TRUE(reader.is_unfinished());
 		EXPECT_FALSE(reader.is_done());
 		EXPECT_FALSE(reader.is_error());
-		ResultTest(resp);
-	}
-
-	{// partial test 2
-		std::string TESTCASE1 = "$10\r\n";
-		std::string TESTCASE2 = "bulkstring\r\n";
-
-		redis::RespReader reader;
-		redis::Resp resp;
-
-		EXPECT_EQ(TESTCASE1.size(), reader.read(TESTCASE1.c_str(), TESTCASE1.size()));
-		EXPECT_TRUE(reader.is_unfinished());
-		EXPECT_FALSE(reader.is_done());
-		EXPECT_FALSE(reader.is_error());
-		EXPECT_FALSE(reader.pop_on_done(resp));
-		EXPECT_EQ(TESTCASE2.size(), reader.read(TESTCASE2.c_str(), TESTCASE2.size()));
-		EXPECT_FALSE(reader.is_unfinished());
-		EXPECT_TRUE(reader.is_done());
-		EXPECT_FALSE(reader.is_error());
-		EXPECT_TRUE(reader.pop_on_done(resp));
-		EXPECT_TRUE(reader.is_unfinished());
-		EXPECT_FALSE(reader.is_done());
-		EXPECT_FALSE(reader.is_error());
-		ResultTest(resp);
-	}
-
-	{// partial test 3
-		std::string TESTCASE1 = "$10\r\nbulkstring";
-		std::string TESTCASE2 = "\r\n";
-
-		redis::RespReader reader;
-		redis::Resp resp;
-
-		EXPECT_EQ(TESTCASE1.size(), reader.read(TESTCASE1.c_str(), TESTCASE1.size()));
-		EXPECT_TRUE(reader.is_unfinished());
-		EXPECT_FALSE(reader.is_done());
-		EXPECT_FALSE(reader.is_error());
-		EXPECT_FALSE(reader.pop_on_done(resp));
-		EXPECT_EQ(TESTCASE2.size(), reader.read(TESTCASE2.c_str(), TESTCASE2.size()));
-		EXPECT_FALSE(reader.is_unfinished());
-		EXPECT_TRUE(reader.is_done());
-		EXPECT_FALSE(reader.is_error());
-		EXPECT_TRUE(reader.pop_on_done(resp));
-		EXPECT_TRUE(reader.is_unfinished());
-		EXPECT_FALSE(reader.is_done());
-		EXPECT_FALSE(reader.is_error());
-		ResultTest(resp);
-	}
-
-	{// partial test 4
-		std::string TESTCASE1 = "$10\r\nbulkstring\r";
-		std::string TESTCASE2 = "\n";
-
-		redis::RespReader reader;
-		redis::Resp resp;
-
-		EXPECT_EQ(TESTCASE1.size(), reader.read(TESTCASE1.c_str(), TESTCASE1.size()));
-		EXPECT_TRUE(reader.is_unfinished());
-		EXPECT_FALSE(reader.is_done());
-		EXPECT_FALSE(reader.is_error());
-		EXPECT_FALSE(reader.pop_on_done(resp));
-		EXPECT_EQ(TESTCASE2.size(), reader.read(TESTCASE2.c_str(), TESTCASE2.size()));
-		EXPECT_FALSE(reader.is_unfinished());
-		EXPECT_TRUE(reader.is_done());
-		EXPECT_FALSE(reader.is_error());
-		EXPECT_TRUE(reader.pop_on_done(resp));
-		EXPECT_TRUE(reader.is_unfinished());
-		EXPECT_FALSE(reader.is_done());
-		EXPECT_FALSE(reader.is_error());
-		ResultTest(resp);
+		ResultTest("bulkstring", resp);
 	}
 
 	{ // null string test
-		const std::string TESTCASE = "$-1\r\n";
+		const std::string NULL_TESTCASE = "$-1\r\n";
 
 		redis::RespReader reader;
 		redis::Resp resp;
-		EXPECT_EQ(TESTCASE.size(), reader.read(TESTCASE.c_str(), TESTCASE.size()));
+		EXPECT_EQ(NULL_TESTCASE.size(), reader.read(NULL_TESTCASE.c_str(), NULL_TESTCASE.size()));
 		EXPECT_FALSE(reader.is_unfinished());
 		EXPECT_TRUE(reader.is_done());
 		EXPECT_FALSE(reader.is_error());
@@ -252,6 +181,46 @@ TEST(RespReader, BulkString)
 		auto ret = redis::get<boost::optional<std::string>>(resp);
 		EXPECT_NE(nullptr, ret);
 		EXPECT_FALSE(ret->is_initialized());
+	}
+
+	{ // wrong len test
+		const std::string WRONG_TESTCASE = "$15\r\nwrongstring\r\n";
+
+		redis::RespReader reader;
+		redis::Resp resp;
+		reader.read(WRONG_TESTCASE.c_str(), WRONG_TESTCASE.size());
+		EXPECT_TRUE(reader.is_unfinished());
+		EXPECT_FALSE(reader.is_done());
+		EXPECT_FALSE(reader.is_error());
+		EXPECT_FALSE(reader.pop_on_done(resp));
+	}
+
+	{ // wrong len test 2
+		const std::string WRONG_TESTCASE = "$5\r\nwrongstring\r\n";
+
+		redis::RespReader reader;
+		redis::Resp resp;
+		reader.read(WRONG_TESTCASE.c_str(), WRONG_TESTCASE.size());
+		EXPECT_FALSE(reader.is_unfinished());
+		EXPECT_FALSE(reader.is_done());
+		EXPECT_TRUE(reader.is_error());
+		EXPECT_FALSE(reader.pop_on_done(resp));
+	}
+
+	{
+		const std::string TESTCASERN = "$6\r\n\r\n\r\n\r\n\r\n";
+
+		redis::RespReader reader;
+		redis::Resp resp;
+		EXPECT_EQ(TESTCASERN.size(), reader.read(TESTCASERN.c_str(), TESTCASERN.size()));
+		EXPECT_FALSE(reader.is_unfinished());
+		EXPECT_TRUE(reader.is_done());
+		EXPECT_FALSE(reader.is_error());
+		EXPECT_TRUE(reader.pop_on_done(resp));
+		EXPECT_TRUE(reader.is_unfinished());
+		EXPECT_FALSE(reader.is_done());
+		EXPECT_FALSE(reader.is_error());
+		ResultTest("\r\n\r\n\r\n", resp);
 	}
 }
 
