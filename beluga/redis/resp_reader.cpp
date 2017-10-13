@@ -92,7 +92,7 @@ size_t RespReader::read(const char* buf, size_t size)
 		size_t readsize = 1;
 		switch (*buf)
 		{
-		case '$':
+		case Resp::SYMBOL_BULKSTRING:
 		{
 			auto ret = read_integer(buf + readsize, size - readsize);
 			if (ret.first == 0)
@@ -117,7 +117,7 @@ size_t RespReader::read(const char* buf, size_t size)
 					buf, size);
 			};
 		} break;
-		case '*':
+		case Resp::SYMBOL_ARRAY:
 		{
 			auto ret = read_integer(buf + readsize, size - readsize);
 			if (ret.first == 0)
@@ -150,7 +150,7 @@ size_t RespReader::read(const char* buf, size_t size)
 				return readsize;
 			};
 		} break;
-		case '+':
+		case Resp::SYMBOL_SIMPLESTRING:
 		{
 			_value = boost::optional<std::string>(std::string());
 			_reader = [this](const char* buf, size_t size)
@@ -159,7 +159,7 @@ size_t RespReader::read(const char* buf, size_t size)
 					buf, size);
 			};
 		} break;
-		case '-':
+		case Resp::SYMBOL_ERROR:
 		{
 			_value = std::string();
 			_reader = [this](const char* buf, size_t size)
@@ -167,7 +167,7 @@ size_t RespReader::read(const char* buf, size_t size)
 				return read_string(boost::get<std::string>(_value), buf, size);
 			};
 		} break;
-		case ':':
+		case Resp::SYMBOL_INTEGER:
 		{
 			auto ret = read_integer(buf + readsize, size - readsize);
 			if (ret.first == 0)

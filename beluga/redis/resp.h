@@ -16,6 +16,12 @@ namespace redis
 class Resp
 {
 public:
+	static constexpr char SYMBOL_BULKSTRING = '$';
+	static constexpr char SYMBOL_ARRAY = '*';
+	static constexpr char SYMBOL_SIMPLESTRING = '+';
+	static constexpr char SYMBOL_ERROR = '-';
+	static constexpr char SYMBOL_INTEGER = ':';
+
 	using TValue = boost::variant<
 		boost::optional<std::string>	// bulk/simple string
 		, __int64						// integer
@@ -340,7 +346,7 @@ struct RespValueVisitor<std::tuple<T...>> : public boost::static_visitor<std::tu
 };
 
 template<class T>
-void bind(const Resp& resp, const T& callback)
+void visitor(const Resp& resp, const T& callback)
 {
 	using TArg = std::remove_const_t<std::remove_reference_t<FunctionTraits<T>::TArg<0>>>;
 	callback(boost::apply_visitor(RespValueVisitor<TArg>(), resp.get()));
