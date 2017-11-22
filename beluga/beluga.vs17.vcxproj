@@ -23,7 +23,7 @@
     <ProjectGuid>{5E2D9547-3005-4D74-811B-9FEAAA4EA204}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>beluga</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>beluga</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

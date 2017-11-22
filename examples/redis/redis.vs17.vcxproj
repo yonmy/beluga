@@ -23,7 +23,7 @@
     <ProjectGuid>{79350A6C-701C-46D7-8AEA-A864582E67EE}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>redis</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>redis</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
