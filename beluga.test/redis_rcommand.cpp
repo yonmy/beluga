@@ -3,6 +3,12 @@
 
 using namespace beluga::redis;
 
+TEST(RedisRCmd, APPEND)
+{
+	EXPECT_EQ("*3\r\n$6\r\nAPPEND\r\n$4\r\ntest\r\n$6\r\nappend\r\n",
+		RCmd<RCmdType::APPEND>::make("test", "append").resp_str());
+}
+
 TEST(RedisRCmd, PING)
 {
 	EXPECT_EQ("*1\r\n$4\r\nPING\r\n",

@@ -1,7 +1,6 @@
 
 #include "pch.h"
 #include <iostream>
-#include <future>
 #include <thread>
 
 #include "beluga/redis/rrequest.h"
@@ -39,11 +38,13 @@ int main(int argc, char* argv[])
 					std::cout << ret << std::endl;
 				});
 				request.commit();
-				request.push(RCmd<RCmdType::SET>::make("a", 10), [](bool ret)
+				request.push(RCmd<RCmdType::SET>::make("a", "value"));
+				request.push(RCmd<RCmdType::SET>::make("b", 10), [](bool ret)
 				{
 					std::cout << ret << std::endl;
 				});
-				request.push(RCmd<RCmdType::SET>::make("b", 20), [&client](const std::string& ret)
+				request.commit();
+				request.push(RCmd<RCmdType::APPEND>::make("a", " append"), [](const int& ret)
 				{
 					std::cout << ret << std::endl;
 				});

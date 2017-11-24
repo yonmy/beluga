@@ -9,6 +9,7 @@ namespace redis
 {
 
 BELU_ENUM(RCmdType, int,
+((APPEND))
 ((PING))
 ((GET))
 ((SET))
@@ -42,6 +43,24 @@ public:
 	static constexpr RCmdType TYPE = T;
 	virtual RCmdType type() const noexcept override final { return TYPE; }
 	static const char* type_str() { return Enum<RCmdType>::ToString(TYPE); }
+};
+
+// https://redis.io/commands/append
+template<>
+class RCmd<RCmdType::APPEND> : public RCmdBase<RCmdType::APPEND>
+{
+	explicit RCmd(std::string&& resp_string)
+		: RCmdBase(std::move(resp_string))
+	{}
+
+public:
+	virtual ~RCmd() = default;
+
+	template<class TKey, class TParam>
+	static RCmd make(const TKey& key, const TParam& param) noexcept
+	{
+		return RCmd(make_bulkstring_array(type_str(), key, param));
+	}
 };
 
 // https://redis.io/commands/ping
