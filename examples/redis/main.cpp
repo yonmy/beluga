@@ -20,14 +20,14 @@ int main(int argc, char* argv[])
 		}
 
 		io_service iosvc;
-		RClientAsioAsnyc client(iosvc);
+		RClientAsioAsync client(iosvc);
 		client.open(ip::tcp::resolver(iosvc).resolve({ argv[1], argv[2] }),
 			[&client](boost::system::error_code err)
 		{
 			std::cout << "client " << err << std::endl;
 			if (err == 0)
 			{
-				RRequest<RClientAsioAsnyc> request(client);
+				RRequest<RClientAsioAsync> request(client);
 				request.push(RCmd<RCmdType::PING>::make(), [](const std::string& ret)
 				{
 					std::cout << ret << std::endl;

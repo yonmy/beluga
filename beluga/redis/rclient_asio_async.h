@@ -10,55 +10,100 @@ namespace beluga
 namespace redis
 {
 
-class RClientAsioAsnyc
+class RClientAsioAsync
 {
 public:
     using RequestPtr = std::unique_ptr<class RRequestImpl>;
 	using RequestQueue = std::queue<RequestPtr>;
 
+private:
+	struct Session
+	{
+		explicit Session(boost::asio::io_service& iosvc)
+			: socket(iosvc)
+		{}
+
+		void close()
+		{
+			boost::system::error_code ec;
+			socket.close(ec);
+		}
+
+		std::function<void(boost::system::error_code)> handler = nullptr;
+		boost::asio::ip::tcp::socket socket;
+		boost::asio::streambuf recvbuf;
+
+		std::mutex mutex;
+		std::string sbuf;
+		std::string sendingbuf;
+		RespReader reader;
+		RequestPtr request;
+		RequestQueue rqueue;
+	};
+	std::shared_ptr<Session> _session;
+
 public:
-    explicit RClientAsioAsnyc(boost::asio::io_service& iosvc)
-		: _socket(iosvc)
-		, _handler(nullptr)
+    explicit RClientAsioAsync(boost::asio::io_service& iosvc)
+		: _session(std::make_shared<Session>(iosvc))
 	{
 	}
 
-    ~RClientAsioAsnyc() {}
+    ~RClientAsioAsync() {}
 
 	template<class THandler>
 	void open(boost::asio::ip::tcp::resolver::iterator ep_itr,
-		THandler&& handler = [](boost::system::error_code){})
+		THandler&& handler = nullptr)
 	{
 		using namespace boost::asio;
 
-		decltype(_rqueue) trash;
+		decltype(_session->rqueue) trash;
 
 		{
-			std::lock_guard<std::mutex> guard(_mutex);
-			if (_handler != nullptr)
+			std::lock_guard<std::mutex> guard(_session->mutex);
+			if (_session->handler != nullptr)
 			{
 				return;
 			}
 
-			_sbuf.clear();
-			_sendingbuf.clear();
-			_recvbuf.consume(_recvbuf.size());
-			_reader.clear();
-			_request.reset();
-			_rqueue.swap(trash);
-			_handler = std::move(handler);
-
-			async_connect(_socket, ep_itr, [this](
-				boost::system::error_code err, ip::tcp::resolver::iterator)
+			_session->sbuf.clear();
+			_session->sendingbuf.clear();
+			_session->recvbuf.consume(_session->recvbuf.size());
+			_session->reader.clear();
+			_session->request.reset();
+			_session->rqueue.swap(trash);
+			_session->handler = std::move(handler);
+			if (_session->handler == nullptr)
 			{
-				_handler(err);
-				if (err)
+				_session->handler = [](boost::system::error_code) {};
+			}
+
+			async_connect(_session->socket, ep_itr, [session = _session](
+				boost::system::error_code err, ip::tcp::resolver::iterator) mutable
+			{
 				{
-					_socket.close();
+					std::lock_guard<std::mutex> guard(session->mutex);
+					if (err)
+					{
+						while (!session->rqueue.empty())
+						{
+							Resp resp("disconnected");
+							while (session->rqueue.front()->on_response(resp) > 0) {}
+							session->rqueue.pop();
+						}
+					}
+					else
+					{
+						do_read(session);
+					}
 				}
-				else
+
+				if (session->handler != nullptr)
 				{
-					do_read();
+					session->handler(err);
+					if (err)
+					{
+						session->handler = nullptr;
+					}
 				}
 			});
 		}
@@ -66,7 +111,7 @@ public:
 
 	void close()
 	{
-		_socket.close();
+		_session->close();
 	}
 
 	void push(RequestPtr&& request)
@@ -76,115 +121,111 @@ public:
             return;
         }
 
-		std::lock_guard<std::mutex> guard(_mutex);
-        request->build_cmd(_sbuf);
-        _rqueue.emplace(std::move(request));
-		do_send();
+		{
+			std::lock_guard<std::mutex> guard(_session->mutex);
+			if (_session->handler != nullptr)
+			{
+				request->build_cmd(_session->sbuf);
+				_session->rqueue.emplace(std::move(request));
+				do_send(_session);
+				return;
+			}
+		}
+        
+		Resp resp("disconnected");
+		request->on_response(resp);
 	}
 
 private:
-	void do_read()
+	static void do_read(std::shared_ptr<Session>& session)
 	{
 		using namespace boost::asio;
 
-		async_read_until(_socket, _recvbuf, std::string("\r\n"),
-			[this](boost::system::error_code err, size_t)
+		async_read_until(session->socket, session->recvbuf, std::string("\r\n"),
+			[session](boost::system::error_code err, size_t) mutable
 		{
 			if (err)
 			{
-				_socket.close();
-				decltype(_handler) handler = std::move(_handler);
-				handler(err);
+				session->close();
 				return;
 			}
 
             Resp resp;
 
-            auto bufsize = _recvbuf.size();
+            auto bufsize = session->recvbuf.size();
             while (bufsize > 0)
             {
-                _recvbuf.consume(_reader.read(reinterpret_cast<const char*>(
-                    detail::buffer_cast_helper(_recvbuf.data())), bufsize));
-                if (!_reader.pop_on_done(resp))
+				session->recvbuf.consume(session->reader.read(reinterpret_cast<const char*>(
+                    detail::buffer_cast_helper(session->recvbuf.data())), bufsize));
+                if (!session->reader.pop_on_done(resp))
                 {
-                    if (_reader.is_error())
+                    if (session->reader.is_error())
                     {
-                        _socket.close();
+						session->close();
                     }
                     break;
                 }
 
-                if (_request == nullptr)
+                if (session->request == nullptr)
                 {
-                    std::lock_guard<std::mutex> guard(_mutex);
-                    if (_rqueue.empty())
+                    std::lock_guard<std::mutex> guard(session->mutex);
+                    if (session->rqueue.empty())
                     {
-                        _socket.close();
+						session->close();
                         break;
                     }
 
-                    _request = std::move(_rqueue.front());
-                    _rqueue.pop();
+					session->request = std::move(session->rqueue.front());
+					session->rqueue.pop();
                 }
 
-                if (!_request->on_response(resp))
+                if (session->request->on_response(resp) == 0)
                 {
-                    _request.reset();
+					session->request.reset();
                 }
 
-                bufsize = _recvbuf.size();
+                bufsize = session->recvbuf.size();
             }
 
-            do_read();
+            do_read(session);
 		});
 	}
 
-	void do_send()
+	static void do_send(std::shared_ptr<Session>& session)
 	{
 		using namespace boost::asio;
 
-		if (!_sendingbuf.empty() || _sbuf.empty())
+		if (!session->sendingbuf.empty() || session->sbuf.empty())
 		{
 			return;
 		}
 
         static const size_t MAXBYTES = 8192 * 2;
-        _sbuf.swap(_sendingbuf);
-        if (_sendingbuf.size() > MAXBYTES)
+		session->sbuf.swap(session->sendingbuf);
+        if (session->sendingbuf.size() > MAXBYTES)
         {
-            _sbuf.append(_sendingbuf, MAXBYTES);
-            _sendingbuf.resize(MAXBYTES);
+			session->sbuf.append(session->sendingbuf, MAXBYTES);
+			session->sendingbuf.resize(MAXBYTES);
         }
 
-		async_write(_socket,
-			buffer(_sendingbuf.data(), _sendingbuf.size()),
-			[this](boost::system::error_code err, size_t)
+		async_write(session->socket,
+			buffer(session->sendingbuf.data(), session->sendingbuf.size()),
+			[session](boost::system::error_code err, size_t) mutable
 		{
 			if (err)
 			{
-				_socket.close();
+				session->close();
 			}
 			else
 			{
-				std::lock_guard<std::mutex> guard(_mutex);
-				_sendingbuf.clear();
-				do_send();
+				std::lock_guard<std::mutex> guard(session->mutex);
+				session->sendingbuf.clear();
+				do_send(session);
 			}
 		});
 	}
-
-private:
-	std::function<void(boost::system::error_code)> _handler;
-	boost::asio::ip::tcp::socket _socket;
-	boost::asio::streambuf _recvbuf;
-
-	std::mutex _mutex;
-    std::string _sbuf;
-	std::string _sendingbuf;
-    RespReader _reader;
-    RequestPtr _request;
-	RequestQueue _rqueue;
 };
 
 }
 }
+
