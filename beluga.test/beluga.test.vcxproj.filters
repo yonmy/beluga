@@ -29,6 +29,9 @@
     <ClCompile Include="redis_resp.cpp">
       <Filter>redis</Filter>
     </ClCompile>
+    <ClCompile Include="copy_on_move.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
